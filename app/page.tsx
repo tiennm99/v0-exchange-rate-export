@@ -74,12 +74,12 @@ const BANK_CURRENCIES = {
 // Helper function to get default dates
 const getDefaultDates = () => {
   const today = new Date()
-  const lastMonth = new Date()
-  lastMonth.setMonth(lastMonth.getMonth() - 1)
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
   return {
     endDate: today.toISOString().split("T")[0],
-    startDate: lastMonth.toISOString().split("T")[0],
+    startDate: sevenDaysAgo.toISOString().split("T")[0],
   }
 }
 
