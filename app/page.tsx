@@ -10,6 +10,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download, Loader2 } from "lucide-react"
 import * as XLSX from "xlsx"
 
+interface ExchangeRateData {
+  date: string
+  bank: string
+  currency: string
+  askRate: string
+  bidRateCK: string
+  bidRateTM: string
+  askRateTM: string
+  inputDate: string
+}
+
+type BankType = "techcombank" | "bidv"
+
 // Currency options for each bank
 const BANK_CURRENCIES = {
   techcombank: [
@@ -71,24 +84,24 @@ const getDefaultDates = () => {
 }
 
 export default function ExchangeRateExporter() {
-  const [bank, setBank] = useState("techcombank")
+  const [bank, setBank] = useState<BankType>("techcombank")
   const [currency, setCurrency] = useState("USD (50,100)")
   const defaultDates = getDefaultDates()
   const [startDate, setStartDate] = useState(defaultDates.startDate)
   const [endDate, setEndDate] = useState(defaultDates.endDate)
-  const [data, setData] = useState([])
+  const [data, setData] = useState<ExchangeRateData[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
   // Update currency when bank changes
-  const handleBankChange = (newBank) => {
+  const handleBankChange = (newBank: BankType) => {
     setBank(newBank)
     // Set default currency for the selected bank
     const defaultCurrency = newBank === "techcombank" ? "USD (50,100)" : "USD"
     setCurrency(defaultCurrency)
   }
 
-  const generateDateRange = (start, end) => {
+  const generateDateRange = (start: string, end: string): string[] => {
     const dates = []
     const startDate = new Date(start)
     const endDate = new Date(end)
@@ -100,7 +113,7 @@ export default function ExchangeRateExporter() {
     return dates
   }
 
-  const fetchTechcombankRate = async (date) => {
+  const fetchTechcombankRate = async (date: string): Promise<ExchangeRateData | null> => {
     try {
       const res = await fetch(`/api/exchange/techcombank?date=${date}`)
       if (!res.ok) {
@@ -112,7 +125,7 @@ export default function ExchangeRateExporter() {
       }
 
       const result = await res.json()
-      const currencyData = result.exchangeRate?.data?.find((item) => item.label === currency)
+      const currencyData = result.exchangeRate?.data?.find((item: any) => item.label === currency)
       if (!currencyData) return null
 
       return {
@@ -131,7 +144,7 @@ export default function ExchangeRateExporter() {
     }
   }
 
-  const fetchBIDVRate = async (date) => {
+  const fetchBIDVRate = async (date: string): Promise<ExchangeRateData | null> => {
     try {
       const res = await fetch(`/api/exchange/bidv?date=${date}`)
       if (!res.ok) {
@@ -143,7 +156,7 @@ export default function ExchangeRateExporter() {
       }
 
       const result = await res.json()
-      const currencyData = result.data?.find((item) => item.currency === currency)
+      const currencyData = result.data?.find((item: any) => item.currency === currency)
       if (!currencyData) return null
 
       return {
@@ -162,7 +175,7 @@ export default function ExchangeRateExporter() {
     }
   }
 
-  const fetchExchangeRate = async (date) => {
+  const fetchExchangeRate = async (date: string): Promise<ExchangeRateData | null> => {
     if (bank === "techcombank") {
       return fetchTechcombankRate(date)
     } else {
@@ -187,7 +200,7 @@ export default function ExchangeRateExporter() {
 
     try {
       const dates = generateDateRange(startDate, endDate)
-      const results = []
+      const results: ExchangeRateData[] = []
 
       for (const date of dates) {
         const rateData = await fetchExchangeRate(date)
@@ -280,7 +293,7 @@ export default function ExchangeRateExporter() {
     URL.revokeObjectURL(url)
   }
 
-  const formatNumber = (value) => {
+  const formatNumber = (value: string) => {
     if (value === "N/A" || !value || value === "-") return value
     // Remove commas and parse
     const numValue = Number.parseFloat(value.replace(/,/g, ""))

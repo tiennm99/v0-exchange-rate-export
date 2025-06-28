@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
-async function safeFetch(bidvUrl, tries = 2) {
+async function safeFetch(bidvUrl: string, tries = 2) {
   const headers = {
     "User-Agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36",
     Accept: "application/json, text/javascript, */*; q=0.01",
     Referer: "https://bidv.com.vn/",
     "X-Requested-With": "XMLHttpRequest",
-  }
+  } as const
 
   // 1️⃣ helper that really performs the fetch
-  const doFetch = (target) =>
+  const doFetch = (target: string) =>
     fetch(target, {
       headers,
       cache: "no-store",
@@ -41,7 +41,7 @@ async function safeFetch(bidvUrl, tries = 2) {
   throw new Error("fetch failed")
 }
 
-export async function GET(request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const date = searchParams.get("date")
 
@@ -69,7 +69,7 @@ export async function GET(request) {
     }
 
     // Step 2: Find the record with highest time value
-    const latestRecord = timeData.data.reduce((prev, current) => (current.time > prev.time ? current : prev))
+    const latestRecord = timeData.data.reduce((prev: any, current: any) => (current.time > prev.time ? current : prev))
 
     // Step 3: Get exchange rates using the namerecord
     const rateUrl = `https://bidv.com.vn/ServicesBIDV/ExchangeDetailServlet?date=${bidvDate}&time=${latestRecord.namerecord}`
@@ -82,7 +82,7 @@ export async function GET(request) {
     const rateData = await rateRes.json()
     return NextResponse.json(rateData)
   } catch (error) {
-    console.error("BIDV API error:", error.message)
+    console.error("BIDV API error:", (error as Error).message)
     return NextResponse.json({ error: "Failed to fetch from BIDV" }, { status: 502 })
   }
 }
